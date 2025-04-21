@@ -12,8 +12,11 @@ public class SubmissionService {
         this.submissionRepository = submissionRepository;
     }
 
+    // Save submission and ensure non-null value
     public Submission saveSubmission(Submission submission) {
+        if (submission == null) {
+            throw new IllegalArgumentException("Submission cannot be null");
+        }
         return submissionRepository.save(submission);
     }
 }
-

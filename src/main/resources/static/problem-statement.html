@@ -116,18 +116,16 @@
 <body>
 <!-- Buttons for Selecting Questions -->
 <div class="buttons-container">
-    <button onclick="loadProblem(1)">Problem 1</button>
-    <button onclick="loadProblem(2)">Problem 2</button>
-    <button onclick="loadProblem(3)">Problem 3</button>
+    <button onclick="cacheCode(); loadProblem(1)">Problem 1</button>
+    <button onclick="cacheCode(); loadProblem(2)">Problem 2</button>
+    <button onclick="cacheCode(); loadProblem(3)">Problem 3</button>
 </div>
 
 <!-- Main Content -->
 <div class="main-container">
     <div class="problem-statement">
         <h1>Problem Statement</h1>
-        <p id="problemDescription">
-            Loading problem...
-        </p>
+        <p id="problemDescription">Loading problem...</p>
     </div>
     <div class="code-editor">
         <!-- Language Selector -->
@@ -161,6 +159,15 @@
         cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Your code here\n    return 0;\n}`
     };
 
+    // Cache to store code for each problem
+    const problemCodeCache = {
+        1: "",
+        2: "",
+        3: ""
+    };
+
+    let currentProblem = 1; // Default to Problem 1
+
     // Retrieve Participant ID from URL Parameters
     const urlParams = new URLSearchParams(window.location.search); // Parse the URL
     const participantId = urlParams.get('participantId'); // Get the participantId dynamically
@@ -176,10 +183,23 @@
         });
     });
 
-    // Function to Load Problem Description
+    // Function to Cache Code Before Switching Problems
+    function cacheCode() {
+        const currentCode = window.editor.getValue(); // Get current code from the editor
+        if (currentProblem) {
+            problemCodeCache[currentProblem] = currentCode; // Cache the code for the current problem
+        }
+    }
+
+    // Function to Load Problem Description and Previously Entered Code
     function loadProblem(problemNumber) {
         const problemDescription = document.getElementById("problemDescription");
         problemDescription.innerText = problems[problemNumber];
+
+        // Load the cached code for the selected problem
+        const cachedCode = problemCodeCache[problemNumber];
+        window.editor.setValue(cachedCode); // Update editor with cached code
+        currentProblem = problemNumber; // Update the current problem globally
     }
 
     // Function to Load Boilerplate Code
@@ -212,7 +232,7 @@
         };
 
         // Send data to the backend using the POST method
-        fetch('http://localhost:8080/api/submissions', {
+        fetch('/api/submissions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

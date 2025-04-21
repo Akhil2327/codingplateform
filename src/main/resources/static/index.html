@@ -24,6 +24,7 @@
             height: 100%;
             object-fit: cover;
             z-index: -1;
+            background: black; /* Fallback if video doesn't load */
         }
 
         .container {
@@ -40,6 +41,7 @@
             border: 2px solid #fff;
             border-radius: 5px;
             font-size: 16px;
+            color: #000; /* Ensure the input text is visible */
         }
 
         button {
@@ -65,21 +67,20 @@
 <div class="container">
     <h1>Welcome to the Event</h1>
     <p>Please enter your Participant ID:</p>
-    <input type="number" id="participantId" placeholder="Enter your ID">
+    <input type="number" id="participantId" placeholder="Enter your ID" aria-label="Participant ID">
     <button onclick="startChallenge()">Start</button>
 </div>
 
 <script>
     function startChallenge() {
-    const participantId = document.getElementById('participantId').value;
-    if (participantId) {
-        // Redirect to problem-statement.html with the participantId as a URL parameter
-        window.location.href = `problem-statement.html?participantId=${participantId}`;
-    } else {
-        alert("Please enter your Participant ID!");
+        const participantId = document.getElementById('participantId').value.trim();
+        if (participantId && !isNaN(participantId) && Number(participantId) > 0) {
+            // Redirect to problem-statement.html with the participantId as a URL parameter
+            window.location.href = `problem-statement.html?participantId=${participantId}`;
+        } else {
+            alert("Please enter a valid Participant ID!");
+        }
     }
-}
-
 </script>
 </body>
 </html>
