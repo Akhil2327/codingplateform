@@ -1,235 +1,408 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Problem Statement</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .buttons-container {
-            background-color: #f1f1f1;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            border-bottom: 2px solid #ddd;
-        }
-
-        .buttons-container button {
-            padding: 10px 20px;
-            margin: 5px;
-            background-color: #00bcd4;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .buttons-container button:hover {
-            background-color: #008ba3;
-        }
-
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .problem-statement {
-            width: 50%;
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-right: 2px solid #ddd;
-            overflow-y: auto;
-        }
-
-        .problem-statement h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        .problem-statement p {
-            font-size: 16px;
-            line-height: 1.5;
-        }
-
-        .code-editor {
-            width: 50%;
-            background-color: #282c34;
-            color: #fff;
-            padding: 10px;
-            overflow-y: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .language-select {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-
-        .language-select label {
-            font-size: 16px;
-            color: #fff;
-        }
-
-        .language-select select {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            background-color: #1e1e1e;
-            color: #fff;
-            border: none;
-        }
-
-        #editorContainer {
-            flex: 1;
-            border-radius: 5px;
-            border: none;
-            height: 80%;
-        }
-
-        .code-editor button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            border: none;
-            background-color: #00bcd4;
-            color: #fff;
-            font-size: 18px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .code-editor button:hover {
-            background-color: #008ba3;
-        }
-    </style>
+    <title>Coding Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Monaco Editor CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
 </head>
+
 <body>
-<!-- Buttons for Selecting Questions -->
-<div class="buttons-container">
-    <button onclick="cacheCode(); loadProblem(1)">Problem 1</button>
-    <button onclick="cacheCode(); loadProblem(2)">Problem 2</button>
-    <button onclick="cacheCode(); loadProblem(3)">Problem 3</button>
-</div>
 
-<!-- Main Content -->
-<div class="main-container">
-    <div class="problem-statement">
-        <h1>Problem Statement</h1>
-        <p id="problemDescription">Loading problem...</p>
-    </div>
-    <div class="code-editor">
-        <!-- Language Selector -->
-        <div class="language-select">
-            <label for="language">Choose Language:</label>
-            <select id="language" onchange="loadBoilerplate()">
-                <option value="java">Java</option>
-                <option value="python">Python</option>
-                <option value="cpp">C++</option>
-            </select>
+
+    <header class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">Coding Competition</h1>
+            <div class="flex items-center space-x-4">
+                <div id="teamInfo" class="text-sm text-gray-600">
+                    Team ID: <span id="teamIdDisplay" class="font-medium"></span>
+                </div>
+                <div id="timer" class="text-lg font-bold bg-gray-200 px-3 py-1 rounded-md">
+                    30:00
+                </div>
+            </div>
         </div>
-        <!-- Monaco Editor Container -->
-        <div id="editorContainer"></div>
-        <button onclick="submitCode()">Submit</button>
+    </header>
+
+    <main class="flex-grow flex">
+        <!-- Questions Panel -->
+        <div class="w-1/4 bg-white border-r border-gray-200 flex flex-col h-[calc(100vh-64px)]">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold">Questions</h2>
+            </div>
+
+            <div id="questionsList" class="overflow-y-auto flex-grow">
+                <!-- Question items will be inserted here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Code Editor Panel -->
+        <div class="w-2/3 flex flex-col h-[calc(100vh-64px)]">
+            <div class="p-4 border-b border-gray-200">
+                <h2 id="currentQuestionTitle" class="text-lg font-semibold">Question 1</h2>
+                <p id="currentQuestionDescription" class="mt-2 text-gray-700">Loading question...</p>
+            </div>
+
+            <div id="editorContainer" class="flex-grow">
+                <!-- Monaco editor will be mounted here -->
+            </div>
+
+            <div class="p-4 border-t border-gray-200 flex justify-between">
+                <button id="prevButton"
+                    class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
+                    Previous
+                </button>
+
+                <div>
+                    <button id="submitButton"
+                        class="bg-green-600 text-white py-2 px-6 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                        Submit Test
+                    </button>
+                </div>
+
+                <button id="nextButton"
+                    class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    Next
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Confirmation Modal -->
+    <div id="submitModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h3 class="text-lg font-semibold mb-4">Confirm Submission</h3>
+            <p class="text-gray-700 mb-6">Are you sure you want to submit your test? You won't be able to make any
+                changes after submission.</p>
+            <div class="flex justify-end space-x-4">
+                <button id="cancelSubmit"
+                    class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmSubmit"
+                    class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                    Submit
+                </button>
+            </div>
+        </div>
     </div>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+    <script>
+
+        // Function to Submit Code
+        function submitCode() {
+            const code = window.editor.getValue(); // Retrieve code from Monaco Editor
+            const language = document.getElementById('language').value;
+            const problemDescription = document.getElementById("problemDescription").innerText;
+
+            const problemId = problemDescription.startsWith("Write a program to find")
+                ? "1"
+                : problemDescription.startsWith("Write a program to check")
+                    ? "2"
+                    : "3";
+
+            const payload = {
+                participantId: participantId, // Dynamically retrieved ID
+                problemId: problemId,
+                language: language,
+                code: code
+            };
+
+            // Send data to the backend using the POST method
+            fetch('/api/submissions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Code submitted successfully!");
+                        return response.json();
+                    } else {
+                        throw new Error("Failed to submit code!");
+                    }
+                })
+                .then(data => {
+                    console.log("Response from backend:", data); // Debugging
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Error submitting code. Please try again!");
+                });
+        }
+
+    </script>
+
+
+
 <script>
-    // Problem Descriptions
-    const problems = {
-        1: "Write a program to find the sum of all prime numbers up to a given number. The input will be a single integer n (1 ≤ n ≤ 1000). Your output should be the sum of all prime numbers less than or equal to n.",
-        2: "Write a program to check if a given string is a palindrome. The input will be a single string. Output should be 'Yes' if the string is a palindrome, otherwise 'No'.",
-        3: "Write a program to calculate the factorial of a number. The input will be a single integer n (1 ≤ n ≤ 20). Your output should be the factorial of n."
-    };
+    // Check if user is logged in and test is in progress
+    document.addEventListener('DOMContentLoaded', function () {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        const testInProgress = localStorage.getItem('testInProgress');
+        const teamId = localStorage.getItem('teamId');
 
-    // Boilerplate Code for Languages
-    const boilerplateCode = {
-        java: `public class Main {\n    public static void main(String[] args) {\n        // Your code here\n    }\n}`,
-        python: `# Write your code here`,
-        cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Your code here\n    return 0;\n}`
-    };
+        if (!isLoggedIn || !teamId) {
+            // Redirect to login if not logged in
+            window.location.href = 'login.html';
+            return;
+        }
 
-    // Cache to store code for each problem
-    const problemCodeCache = {
-        1: "",
-        2: "",
-        3: ""
-    };
+        if (!testInProgress) {
+            // Redirect to instructions if test not started
+            window.location.href = 'instructions.html';
+            return;
+        }
 
-    let currentProblem = 1; // Default to Problem 1
+        // Display team ID
+        document.getElementById('teamIdDisplay').textContent = teamId;
 
-    // Retrieve Participant ID from URL Parameters
-    const urlParams = new URLSearchParams(window.location.search); // Parse the URL
-    const participantId = urlParams.get('participantId'); // Get the participantId dynamically
-    console.log("Participant ID:", participantId); // Debugging
+        // Initialize timer
+        initializeTimer();
 
-    // Initialize Monaco Editor
-    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs' } });
-    require(['vs/editor/editor.main'], function() {
-        window.editor = monaco.editor.create(document.getElementById('editorContainer'), {
-            value: boilerplateCode['java'], // Default to Java boilerplate
-            language: 'java',
-            theme: 'vs-dark',
+        // Load questions
+        loadQuestions();
+
+        // Initialize Monaco Editor
+        initializeEditor();
+
+        // Set up navigation buttons
+        document.getElementById('prevButton').addEventListener('click', navigateToPrevQuestion);
+        document.getElementById('nextButton').addEventListener('click', navigateToNextQuestion);
+
+        // Set up submit buttons
+        document.getElementById('submitButton').addEventListener('click', function () {
+            document.getElementById('submitModal').classList.remove('hidden');
         });
+
+        document.getElementById('cancelSubmit').addEventListener('click', function () {
+            document.getElementById('submitModal').classList.add('hidden');
+        });
+
+        document.getElementById('confirmSubmit').addEventListener('click', submitTest);
     });
 
-    // Function to Cache Code Before Switching Problems
-    function cacheCode() {
-        const currentCode = window.editor.getValue(); // Get current code from the editor
-        if (currentProblem) {
-            problemCodeCache[currentProblem] = currentCode; // Cache the code for the current problem
+    let editor; // Global reference to Monaco editor
+    let questions = [];
+    let currentQuestionId = 1;
+
+    // Initialize the countdown timer
+    function initializeTimer() {
+        const startTime = parseInt(localStorage.getItem('startTime'));
+        const duration = 60 * 60 * 1000; // 30 minutes in milliseconds
+        const timerElement = document.getElementById('timer');
+
+        function updateTimer() {
+            const now = Date.now();
+            const elapsed = now - startTime;
+            const remaining = Math.max(0, duration - elapsed);
+
+            if (remaining <= 0) {
+                // Time's up - auto submit
+                clearInterval(timerInterval);
+                timerElement.textContent = '00:00';
+                submitTest();
+                return;
+            }
+
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            // Warning colors when time is running out
+            if (minutes < 5) {
+                timerElement.classList.add('text-red-600');
+                timerElement.classList.add('bg-red-100');
+            }
+        }
+
+        updateTimer(); // Initial update
+        const timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    // Load questions from localStorage
+    function loadQuestions() {
+        questions = JSON.parse(localStorage.getItem('questions'));
+        currentQuestionId = parseInt(localStorage.getItem('currentQuestionId')) || 1;
+
+        // Populate questions list
+        const questionsListElement = document.getElementById('questionsList');
+        questionsListElement.innerHTML = '';
+
+        questions.forEach(question => {
+            const questionElement = document.createElement('div');
+            questionElement.className = `p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${question.id === currentQuestionId ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`;
+            questionElement.innerHTML = `
+                <h3 class="font-medium">${question.title}</h3>
+            `;
+            questionElement.addEventListener('click', () => {
+                saveCurrentQuestionCode();
+                navigateToQuestion(question.id);
+            });
+            questionsListElement.appendChild(questionElement);
+        });
+
+        // Display current question
+        displayCurrentQuestion();
+    }
+
+    // // Initialize Monaco Editor
+    // function initializeEditor() {
+    //     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
+    //     require(['vs/editor/editor.main'], function() {
+    //         editor = monaco.editor.create(document.getElementById('editorContainer'), {
+    //             value: '',
+    //             language: 'javascript',
+    //             theme: 'vs',
+    //             automaticLayout: true,
+    //             minimap: { enabled: false },
+    //             scrollBeyondLastLine: false,
+    //             fontSize: 14,
+    //             lineNumbers: 'on',
+    //             renderLineHighlight: 'all',
+    //             scrollbar: {
+    //                 useShadows: false,
+    //                 verticalScrollbarSize: 10,
+    //                 horizontalScrollbarSize: 10
+    //             }
+    //         });
+
+    //         // Display current question code
+    //         displayCurrentQuestion();
+    //     });
+    // }
+
+
+
+    function initializeEditor() {
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('editorContainer'), {
+                value: '',
+                language: 'javascript',
+                theme: 'vs',
+                automaticLayout: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 14,
+                lineNumbers: 'on',
+                renderLineHighlight: 'all',
+                scrollbar: {
+                    useShadows: false,
+                    verticalScrollbarSize: 10,
+                    horizontalScrollbarSize: 10
+                },
+                suggestOnTriggerCharacters: false,
+                quickSuggestions: false,
+                parameterHints: false
+            });
+
+            // Disable all validation and suggestions
+            monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+                noSemanticValidation: true,
+                noSyntaxValidation: true
+            });
+
+            monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+                noLib: true,
+                allowNonTsExtensions: true
+            });
+
+            // Display current question code
+            displayCurrentQuestion();
+        });
+    }
+
+
+
+
+    // Display the current question
+    function displayCurrentQuestion() {
+        const currentQuestion = questions.find(q => q.id === currentQuestionId);
+        if (!currentQuestion) return;
+
+        document.getElementById('currentQuestionTitle').textContent = currentQuestion.title;
+        document.getElementById('currentQuestionDescription').textContent = currentQuestion.description;
+
+        if (editor) {
+            editor.setValue(currentQuestion.code || '');
+        }
+
+        // Update navigation buttons
+        document.getElementById('prevButton').disabled = currentQuestionId === 1;
+        document.getElementById('nextButton').disabled = currentQuestionId === questions.length;
+
+        // Update questions list highlighting
+        const questionItems = document.querySelectorAll('#questionsList > div');
+        questionItems.forEach((item, index) => {
+            if (index + 1 === currentQuestionId) {
+                item.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
+            } else {
+                item.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-500');
+            }
+        });
+
+        // Update localStorage
+        localStorage.setItem('currentQuestionId', currentQuestionId.toString());
+    }
+
+    // Save the current question's code
+    function saveCurrentQuestionCode() {
+        if (!editor) return;
+
+        const currentQuestion = questions.find(q => q.id === currentQuestionId);
+        if (currentQuestion) {
+            currentQuestion.code = editor.getValue();
+            localStorage.setItem('questions', JSON.stringify(questions));
         }
     }
 
-    // Function to Load Problem Description and Previously Entered Code
-    function loadProblem(problemNumber) {
-        const problemDescription = document.getElementById("problemDescription");
-        problemDescription.innerText = problems[problemNumber];
-
-        // Load the cached code for the selected problem
-        const cachedCode = problemCodeCache[problemNumber];
-        window.editor.setValue(cachedCode); // Update editor with cached code
-        currentProblem = problemNumber; // Update the current problem globally
+    // Navigate to a specific question
+    function navigateToQuestion(questionId) {
+        saveCurrentQuestionCode();
+        currentQuestionId = questionId;
+        displayCurrentQuestion();
     }
 
-    // Function to Load Boilerplate Code
-    function loadBoilerplate() {
-        const selectedLanguage = document.getElementById("language").value;
-        const languageMapping = { java: 'java', python: 'python', cpp: 'cpp' };
-        const selectedBoilerplate = boilerplateCode[selectedLanguage];
-        const editorLanguage = languageMapping[selectedLanguage];
-        window.editor.setValue(selectedBoilerplate); // Update editor content
-        monaco.editor.setModelLanguage(window.editor.getModel(), editorLanguage); // Change language
+    // Navigate to previous question
+    function navigateToPrevQuestion() {
+        if (currentQuestionId > 1) {
+            navigateToQuestion(currentQuestionId - 1);
+        }
     }
 
-    // Function to Submit Code
-    function submitCode() {
-        const code = window.editor.getValue(); // Retrieve code from Monaco Editor
-        const language = document.getElementById('language').value;
-        const problemDescription = document.getElementById("problemDescription").innerText;
+    // Navigate to next question
+    function navigateToNextQuestion() {
+        if (currentQuestionId < questions.length) {
+            navigateToQuestion(currentQuestionId + 1);
+        }
+    }
 
-        const problemId = problemDescription.startsWith("Write a program to find")
-            ? "1"
-            : problemDescription.startsWith("Write a program to check")
-            ? "2"
-            : "3";
+    // Submit the test
+    function submitTest() {
+        // Save current question code first
+        saveCurrentQuestionCode();
+
+        // Get all answers
+        const answers = questions.map(q => ({
+            questionId: q.id,
+            code: q.code
+        }));
 
         const payload = {
-            participantId: participantId, // Dynamically retrieved ID
-            problemId: problemId,
-            language: language,
-            code: code
-        };
+                participantId: participantId, // Dynamically retrieved ID
+                problemId: problemId,
+                language: language,
+                code: code
+            };
+
 
         // Send data to the backend using the POST method
         fetch('/api/submissions', {
@@ -239,27 +412,42 @@
             },
             body: JSON.stringify(payload)
         })
-        .then(response => {
-            if (response.ok) {
-                alert("Code submitted successfully!");
-                return response.json();
-            } else {
-                throw new Error("Failed to submit code!");
-            }
-        })
-        .then(data => {
-            console.log("Response from backend:", data); // Debugging
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("Error submitting code. Please try again!");
-        });
-    }
+            .then(response => {
+                if (response.ok) {
+                    // alert("Code submitted successfully!");
+                    return response.json();
+                } else {
+                    throw new Error("Failed to submit code!");
+                }
+            })
+            .then(data => {
+                console.log("Response from backend:", data); // Debugging
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error submitting code. Please try again!");
+            });
 
-    // Automatically Load Problem 1 on Page Load
-    window.onload = function() {
-        loadProblem(1); // Load Problem 1
-    };
+
+        // In a real application, you would send this data to your server
+        // For this example, we'll just simulate a submission
+        console.log('Submitting test answers:', answers);
+
+        // Mock API call
+        setTimeout(() => {
+            // Clear test data
+            localStorage.removeItem('testInProgress');  
+            localStorage.removeItem('startTime');
+
+            // Show completion message
+            console.log('Your test has been submitted successfully!');
+
+            // Redirect to a thank you page (you would create this)
+            // For now, we'll just go back to the login
+            window.location.href = 'complete.html';
+        }, 1500);
+    }
 </script>
 </body>
+
 </html>
