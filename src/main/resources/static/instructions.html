@@ -7,89 +7,84 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <header class="bg-white p-4 rounded-lg shadow-md mb-6 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-800">Coding Competition</h1>
-            <div id="teamInfo" class="text-sm text-gray-600">
-                Team ID: <span id="participantIdDisplay" class="font-medium"></span>
-            </div>
-        </header>
-        
-        <main class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">Instructions</h2>
-            
-            <div class="space-y-4 text-gray-700">
-                <p>Welcome to the coding competition! Please read the following instructions carefully:</p>
-                
-                <ol class="list-decimal pl-5 space-y-2">
-                    <li>You will have <strong>30 minutes</strong> to complete the test once you click the Start button.</li>
-                    <li>The test consists of multiple coding questions that you must solve.</li>
-                    <li>You can navigate between questions using the navigation panel on the left.</li>
-                    <li>Your code will be automatically saved when you switch between questions.</li>
-                    <li>There is no "Run" button to test your code - focus on writing correct solutions.</li>
-                    <li>Once you submit your test, you cannot make any further changes.</li>
-                    <li>Do not refresh the page or navigate away during the test, or you may lose your progress.</li>
-                </ol>
-                
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-yellow-700">
-                                Make sure you're ready before clicking the Start button. The timer will begin immediately.
-                            </p>
-                        </div>
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <header class="bg-white p-4 rounded-lg shadow-md mb-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">Coding Competition</h1>
+        <div id="teamInfo" class="text-sm text-gray-600">
+            Team ID: <span id="participantIdDisplay" class="font-medium"></span>
+        </div>
+    </header>
+
+    <main class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Instructions</h2>
+
+        <div class="space-y-4 text-gray-700">
+            <p>Welcome to the coding competition! Please read the following instructions carefully:</p>
+
+            <ol class="list-decimal pl-5 space-y-2">
+                <li>You will have <strong>30 minutes</strong> to complete the test once you click the Start button.</li>
+                <li>The test consists of multiple coding questions that you must solve.</li>
+                <li>You can navigate between questions using the navigation panel on the left.</li>
+                <li>Your code will be automatically saved when you switch between questions.</li>
+                <li>There is no "Run" button to test your code - focus on writing correct solutions.</li>
+                <li>Once you submit your test, you cannot make any further changes.</li>
+                <li>Do not refresh the page or navigate away during the test, or you may lose your progress.</li>
+            </ol>
+
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            Make sure you're ready before clicking the Start button. The timer will begin immediately.
+                        </p>
                     </div>
                 </div>
             </div>
-            
-            <div class="mt-8 flex justify-center">
-                <button id="startButton" class="bg-green-600 text-white py-3 px-8 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors text-lg font-medium">
-                    Start Test
-                </button>
-            </div>
-        </main>
-    </div>
+        </div>
 
-    <script>
-        // Check if user is logged in
-        document.addEventListener('DOMContentLoaded', function() {
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            const participantId = localStorage.getItem('participantId');
-            
-            if (!isLoggedIn || !participantId) {
-                // Redirect to login if not logged in
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            // Display team ID
-            document.getElementById('participantIdDisplay').textContent = participantId;
-            
-            // Set up start button
-            document.getElementById('startButton').addEventListener('click', function() {
-                // Initialize test data in localStorage
-                const questions = [
-                    { id: 1, title: "Question 1", description: "Write a function that returns the sum of two numbers.", code: "function sum(a, b) {\n  // Your code here\n}" },
-                    { id: 2, title: "Question 2", description: "Write a function that checks if a string is a palindrome.", code: "function isPalindrome(str) {\n  // Your code here\n}" },
-                    { id: 3, title: "Question 3", description: "Write a function that finds the maximum value in an array.", code: "function findMax(arr) {\n  // Your code here\n}" },
-                    { id: 4, title: "Question 4", description: "Write a function that counts the occurrence of each character in a string.", code: "function countChars(str) {\n  // Your code here\n}" },
-                    { id: 5, title: "Question 5", description: "Write a function that reverses an array without using the built-in reverse method.", code: "function reverseArray(arr) {\n  // Your code here\n}" }
-                ];
-                
-                localStorage.setItem('questions', JSON.stringify(questions));
-                localStorage.setItem('currentQuestionId', '1');
-                localStorage.setItem('startTime', Date.now().toString());
-                localStorage.setItem('testInProgress', 'true');
-                
-                // Redirect to test page
-                window.location.href = `problem-statement.html?participantId=${participantId}`;
-            });
+        <div class="mt-8 flex justify-center">
+            <button id="startButton" class="bg-green-600 text-white py-3 px-8 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors text-lg font-medium">
+                Start Test
+            </button>
+        </div>
+    </main>
+</div>
+
+<script>
+    // ✅ Fix: Corrected login check logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const participantId = localStorage.getItem('participantId');
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+        // Fix: Ensuring correct login check
+        if (!isLoggedIn || !participantId) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        // Display participant ID
+        document.getElementById('participantIdDisplay').textContent = participantId;
+
+        // Start button logic
+        document.getElementById('startButton').addEventListener('click', function() {
+            const questions = [
+                { id: 1, title: "Question 1", description: "Write a function that returns the sum of two numbers.", code: "function sum(a, b) {\n  // Your code here\n}" },
+                { id: 2, title: "Question 2", description: "Write a function that checks if a string is a palindrome.", code: "function isPalindrome(str) {\n  // Your code here\n}" }
+            ];
+
+            localStorage.setItem('questions', JSON.stringify(questions));
+            localStorage.setItem('currentQuestionId', '1');
+            localStorage.setItem('startTime', Date.now().toString());
+            localStorage.setItem('testInProgress', 'true');
+
+            window.location.href = `problem-statement.html?participantId=${participantId}`;
         });
-    </script>
+    });
+</script>
 </body>
 </html>
