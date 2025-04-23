@@ -8,17 +8,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Monaco Editor CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <style>
+        /* .monaco-editor {
+            height: 300px !important;
+        }  */
+    </style>
 </head>
 
 <body>
-
-
     <header class="bg-white shadow-md p-4">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold text-gray-800">Coding Competition</h1>
             <div class="flex items-center space-x-4">
                 <div id="teamInfo" class="text-sm text-gray-600">
-                    Team ID: <span id="teamIdDisplay" class="font-medium"></span>
+                    Team ID: <span id="participantIdDisplay" class="font-medium"></span>
                 </div>
                 <div id="timer" class="text-lg font-bold bg-gray-200 px-3 py-1 rounded-md">
                     30:00
@@ -46,13 +49,26 @@
                 <p id="currentQuestionDescription" class="mt-2 text-gray-700">Loading question...</p>
             </div>
 
+            <!-- Language selector -->
+            <div class="px-4 py-2 border-b border-gray-200 flex items-center">
+                <label for="languageSelector" class="mr-2 text-sm font-medium text-gray-700">Language:</label>
+                <select id="languageSelector"
+                    class="form-select text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="javascript">JavaScript</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="c">C</option>
+                    <option value="python">Python</option>
+                </select>
+            </div>
+
             <div id="editorContainer" class="flex-grow">
                 <!-- Monaco editor will be mounted here -->
             </div>
 
             <div class="p-4 border-t border-gray-200 flex justify-between">
                 <button id="prevButton"
-                    class="bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
+                    class="bg-red-200 text-gray-700 py-2 px-4 rounded-md hover:bg-red-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
                     Previous
                 </button>
 
@@ -90,364 +106,432 @@
         </div>
     </div>
 
+    <div id="loadingScreen" class="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="flex flex-col items-center space-y-4">
+            <svg class="animate-spin h-10 w-10 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                </path>
+            </svg>
+            <p class="text-gray-800 font-medium">Submitting your test...</p>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"></script>
+
     <script>
-
-        // Function to Submit Code
-        function submitCode() {
-            const code = window.editor.getValue(); // Retrieve code from Monaco Editor
-            const language = document.getElementById('language').value;
-            const problemDescription = document.getElementById("problemDescription").innerText;
-
-            const problemId = problemDescription.startsWith("Write a program to find")
-                ? "1"
-                : problemDescription.startsWith("Write a program to check")
-                    ? "2"
-                    : "3";
-
-            const payload = {
-                participantId: participantId, // Dynamically retrieved ID
-                problemId: problemId,
-                language: language,
-                code: code
-            };
-
-            // Send data to the backend using the POST method
-            fetch('/api/submissions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-                .then(response => {
-                    if (response.ok) {
-                        alert("Code submitted successfully!");
-                        return response.json();
-                    } else {
-                        throw new Error("Failed to submit code!");
-                    }
-                })
-                .then(data => {
-                    console.log("Response from backend:", data); // Debugging
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("Error submitting code. Please try again!");
-                });
-        }
-
-    </script>
+        // Check if user is logged in and test is in progress
+        document.addEventListener('DOMContentLoaded', function () {
+            const testInProgress = localStorage.getItem('testInProgress');
+            const participantId = localStorage.getItem('participantId');
 
 
-
-<script>
-    // Check if user is logged in and test is in progress
-    document.addEventListener('DOMContentLoaded', function () {
-        const isLoggedIn = localStorage.getItem('isLoggedIn');
-        const testInProgress = localStorage.getItem('testInProgress');
-        const teamId = localStorage.getItem('teamId');
-
-        if (!isLoggedIn || !teamId) {
-            // Redirect to login if not logged in
-            window.location.href = 'login.html';
-            return;
-        }
-
-        if (!testInProgress) {
-            // Redirect to instructions if test not started
-            window.location.href = 'instructions.html';
-            return;
-        }
-
-        // Display team ID
-        document.getElementById('teamIdDisplay').textContent = teamId;
-
-        // Initialize timer
-        initializeTimer();
-
-        // Load questions
-        loadQuestions();
-
-        // Initialize Monaco Editor
-        initializeEditor();
-
-        // Set up navigation buttons
-        document.getElementById('prevButton').addEventListener('click', navigateToPrevQuestion);
-        document.getElementById('nextButton').addEventListener('click', navigateToNextQuestion);
-
-        // Set up submit buttons
-        document.getElementById('submitButton').addEventListener('click', function () {
-            document.getElementById('submitModal').classList.remove('hidden');
-        });
-
-        document.getElementById('cancelSubmit').addEventListener('click', function () {
-            document.getElementById('submitModal').classList.add('hidden');
-        });
-
-        document.getElementById('confirmSubmit').addEventListener('click', submitTest);
-    });
-
-    let editor; // Global reference to Monaco editor
-    let questions = [];
-    let currentQuestionId = 1;
-
-    // Initialize the countdown timer
-    function initializeTimer() {
-        const startTime = parseInt(localStorage.getItem('startTime'));
-        const duration = 60 * 60 * 1000; // 30 minutes in milliseconds
-        const timerElement = document.getElementById('timer');
-
-        function updateTimer() {
-            const now = Date.now();
-            const elapsed = now - startTime;
-            const remaining = Math.max(0, duration - elapsed);
-
-            if (remaining <= 0) {
-                // Time's up - auto submit
-                clearInterval(timerInterval);
-                timerElement.textContent = '00:00';
-                submitTest();
+            if (!testInProgress) {
+                // Redirect to instructions if test not started
+                window.location.href = 'instructions.html';
                 return;
             }
 
-            const minutes = Math.floor(remaining / 60000);
-            const seconds = Math.floor((remaining % 60000) / 1000);
+            // Display team ID
+            document.getElementById('participantIdDisplay').textContent = participantId;
 
-            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            // Initialize timer
+            initializeTimer();
 
-            // Warning colors when time is running out
-            if (minutes < 5) {
-                timerElement.classList.add('text-red-600');
-                timerElement.classList.add('bg-red-100');
+            // Load questions
+            loadQuestions();
+
+            // Initialize Monaco Editor
+            initializeEditor();
+
+            // Set up navigation buttons
+            document.getElementById('prevButton').addEventListener('click', navigateToPrevQuestion);
+            document.getElementById('nextButton').addEventListener('click', navigateToNextQuestion);
+
+            // Set up language selector
+            document.getElementById('languageSelector').addEventListener('change', function () {
+                debugLanguageChange();
+                changeLanguage();
+            });
+
+            // Set up submit buttons
+            document.getElementById('submitButton').addEventListener('click', function () {
+                document.getElementById('submitModal').classList.remove('hidden');
+            });
+
+            document.getElementById('cancelSubmit').addEventListener('click', function () {
+                document.getElementById('submitModal').classList.add('hidden');
+            });
+
+            document.getElementById('confirmSubmit').addEventListener('click', submitTest);
+        });
+
+        let editor; // Global reference to Monaco editor
+        let questions = [];
+        let currentQuestionId = 1;
+
+        // Initialize the countdown timer
+        function initializeTimer() {
+            const startTime = parseInt(localStorage.getItem('startTime'));
+            const duration = 60 * 60 * 1000; // 60 minutes in milliseconds
+            const timerElement = document.getElementById('timer');
+
+            function updateTimer() {
+                const now = Date.now();
+                const elapsed = now - startTime;
+                const remaining = Math.max(0, duration - elapsed);
+
+                if (remaining <= 0) {
+                    // Time's up - auto submit
+                    clearInterval(timerInterval);
+                    timerElement.textContent = '00:00';
+                    submitTest();
+                    return;
+                }
+
+                const minutes = Math.floor(remaining / 60000);
+                const seconds = Math.floor((remaining % 60000) / 1000);
+
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // Warning colors when time is running out
+                if (minutes < 5) {
+                    timerElement.classList.add('text-red-600');
+                    timerElement.classList.add('bg-red-100');
+                }
             }
+
+            updateTimer(); // Initial update
+            const timerInterval = setInterval(updateTimer, 1000);
         }
 
-        updateTimer(); // Initial update
-        const timerInterval = setInterval(updateTimer, 1000);
-    }
+        // Load questions from localStorage
+        function loadQuestions() {
+            questions = JSON.parse(localStorage.getItem('questions'));
+            currentQuestionId = parseInt(localStorage.getItem('currentQuestionId')) || 1;
 
-    // Load questions from localStorage
-    function loadQuestions() {
-        questions = JSON.parse(localStorage.getItem('questions'));
-        currentQuestionId = parseInt(localStorage.getItem('currentQuestionId')) || 1;
+            // Populate questions list
+            const questionsListElement = document.getElementById('questionsList');
+            questionsListElement.innerHTML = '';
 
-        // Populate questions list
-        const questionsListElement = document.getElementById('questionsList');
-        questionsListElement.innerHTML = '';
-
-        questions.forEach(question => {
-            const questionElement = document.createElement('div');
-            questionElement.className = `p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${question.id === currentQuestionId ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`;
-            questionElement.innerHTML = `
+            questions.forEach(question => {
+                const questionElement = document.createElement('div');
+                questionElement.className = `p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 ${question.id === currentQuestionId ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`;
+                questionElement.innerHTML = `
                 <h3 class="font-medium">${question.title}</h3>
             `;
-            questionElement.addEventListener('click', () => {
-                saveCurrentQuestionCode();
-                navigateToQuestion(question.id);
-            });
-            questionsListElement.appendChild(questionElement);
-        });
-
-        // Display current question
-        displayCurrentQuestion();
-    }
-
-    // // Initialize Monaco Editor
-    // function initializeEditor() {
-    //     require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
-    //     require(['vs/editor/editor.main'], function() {
-    //         editor = monaco.editor.create(document.getElementById('editorContainer'), {
-    //             value: '',
-    //             language: 'javascript',
-    //             theme: 'vs',
-    //             automaticLayout: true,
-    //             minimap: { enabled: false },
-    //             scrollBeyondLastLine: false,
-    //             fontSize: 14,
-    //             lineNumbers: 'on',
-    //             renderLineHighlight: 'all',
-    //             scrollbar: {
-    //                 useShadows: false,
-    //                 verticalScrollbarSize: 10,
-    //                 horizontalScrollbarSize: 10
-    //             }
-    //         });
-
-    //         // Display current question code
-    //         displayCurrentQuestion();
-    //     });
-    // }
-
-
-
-    function initializeEditor() {
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' } });
-        require(['vs/editor/editor.main'], function () {
-            editor = monaco.editor.create(document.getElementById('editorContainer'), {
-                value: '',
-                language: 'javascript',
-                theme: 'vs',
-                automaticLayout: true,
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                lineNumbers: 'on',
-                renderLineHighlight: 'all',
-                scrollbar: {
-                    useShadows: false,
-                    verticalScrollbarSize: 10,
-                    horizontalScrollbarSize: 10
-                },
-                suggestOnTriggerCharacters: false,
-                quickSuggestions: false,
-                parameterHints: false
+                questionElement.addEventListener('click', () => {
+                    saveCurrentQuestionCode();
+                    navigateToQuestion(question.id);
+                });
+                questionsListElement.appendChild(questionElement);
             });
 
-            // Disable all validation and suggestions
-            monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-                noSemanticValidation: true,
-                noSyntaxValidation: true
-            });
-
-            monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-                noLib: true,
-                allowNonTsExtensions: true
-            });
-
-            // Display current question code
+            // Display current question
             displayCurrentQuestion();
-        });
-    }
-
-
-
-
-    // Display the current question
-    function displayCurrentQuestion() {
-        const currentQuestion = questions.find(q => q.id === currentQuestionId);
-        if (!currentQuestion) return;
-
-        document.getElementById('currentQuestionTitle').textContent = currentQuestion.title;
-        document.getElementById('currentQuestionDescription').textContent = currentQuestion.description;
-
-        if (editor) {
-            editor.setValue(currentQuestion.code || '');
         }
 
-        // Update navigation buttons
-        document.getElementById('prevButton').disabled = currentQuestionId === 1;
-        document.getElementById('nextButton').disabled = currentQuestionId === questions.length;
+        // Initialize Monaco Editor
+        function initializeEditor() {
+            require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' } });
+            require(['vs/editor/editor.main'], function () {
+                editor = monaco.editor.create(document.getElementById('editorContainer'), {
+                    value: '',
+                    language: 'javascript', // Default language
+                    theme: 'vs',
+                    automaticLayout: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    renderLineHighlight: 'all',
+                    scrollbar: {
+                        useShadows: false,
+                        verticalScrollbarSize: 10,
+                        horizontalScrollbarSize: 10
+                    },
+                    suggestOnTriggerCharacters: false,
+                    quickSuggestions: false,
+                    parameterHints: false
+                });
 
-        // Update questions list highlighting
-        const questionItems = document.querySelectorAll('#questionsList > div');
-        questionItems.forEach((item, index) => {
-            if (index + 1 === currentQuestionId) {
-                item.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
-            } else {
-                item.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-500');
+                // Disable all validation and suggestions
+                monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+                    noSemanticValidation: true,
+                    noSyntaxValidation: true
+                });
+
+                monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+                    noLib: true,
+                    allowNonTsExtensions: true
+                });
+
+                // Display current question code
+                displayCurrentQuestion();
+            });
+        }
+
+        // Replace the changeLanguage function with this improved version
+        function changeLanguage() {
+            if (!editor) return;
+
+            const languageSelector = document.getElementById('languageSelector');
+            const selectedLanguage = languageSelector.value;
+
+            // Get the current question
+            const currentQuestion = questions.find(q => q.id === currentQuestionId);
+            if (!currentQuestion) return;
+
+            // Check if we're changing from one language to another
+            const isChangingLanguage = currentQuestion.language &&
+                currentQuestion.language !== selectedLanguage;
+
+            // Update the language model for the editor
+            monaco.editor.setModelLanguage(editor.getModel(), selectedLanguage);
+
+            // Save the new language in the question object
+            currentQuestion.language = selectedLanguage;
+
+            // Apply boilerplate code if explicitly changing languages
+            if (isChangingLanguage) {
+                const boilerplate = getBoilerplateCode(selectedLanguage);
+                editor.setValue(boilerplate);
+                currentQuestion.code = boilerplate;
             }
-        });
 
-        // Update localStorage
-        localStorage.setItem('currentQuestionId', currentQuestionId.toString());
-    }
-
-    // Save the current question's code
-    function saveCurrentQuestionCode() {
-        if (!editor) return;
-
-        const currentQuestion = questions.find(q => q.id === currentQuestionId);
-        if (currentQuestion) {
-            currentQuestion.code = editor.getValue();
+            // Save to localStorage
             localStorage.setItem('questions', JSON.stringify(questions));
         }
-    }
 
-    // Navigate to a specific question
-    function navigateToQuestion(questionId) {
-        saveCurrentQuestionCode();
-        currentQuestionId = questionId;
-        displayCurrentQuestion();
-    }
+        // Get boilerplate code for the selected language
+        function getBoilerplateCode(language) {
+            switch (language) {
+                case 'javascript':
+                    return `// JavaScript Solution
+function solve(input) {
+    // Your code here
+    
+    return result;
+}
 
-    // Navigate to previous question
-    function navigateToPrevQuestion() {
-        if (currentQuestionId > 1) {
-            navigateToQuestion(currentQuestionId - 1);
+// Example usage
+console.log(solve(input));`;
+
+                case 'java':
+                    return `// Java Solution
+import java.util.*;
+
+public class Solution {
+    public static void main(String[] args) {
+        // Example usage
+        System.out.println(solve(input));
+    }
+    
+    public static Object solve(Object input) {
+        // Your code here
+        
+        return result;
+    }
+}`;
+
+                case 'cpp':
+                    return `// C++ Solution
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+// Your solution here
+void solve() {
+    // Your code here
+    
+}
+
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    solve();
+    return 0;
+}`;
+
+                case 'c':
+                    return `// C Solution
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Your solution here
+void solve() {
+    // Your code here
+    
+}
+
+int main() {
+    solve();
+    return 0;
+}`;
+
+                case 'python':
+                    return `# Python Solution
+def solve(input):
+    # Your code here
+    
+    return result
+
+# Example usage
+print(solve(input))`;
+
+                default:
+                    return '// Write your solution here';
+            }
         }
-    }
 
-    // Navigate to next question
-    function navigateToNextQuestion() {
-        if (currentQuestionId < questions.length) {
-            navigateToQuestion(currentQuestionId + 1);
-        }
-    }
+        // Replace the displayCurrentQuestion function with this improved version
+        function displayCurrentQuestion() {
+            const currentQuestion = questions.find(q => q.id === currentQuestionId);
+            if (!currentQuestion) return;
 
-    // Submit the test
-    function submitTest() {
-        // Save current question code first
-        saveCurrentQuestionCode();
+            document.getElementById('currentQuestionTitle').textContent = currentQuestion.title;
+            document.getElementById('currentQuestionDescription').textContent = currentQuestion.description;
 
-        // Get all answers
-        const answers = questions.map(q => ({
-            questionId: q.id,
-            code: q.code
-        }));
+            if (editor) {
+                // Set the language in the selector first
+                const languageSelector = document.getElementById('languageSelector');
 
-        const payload = {
-                participantId: participantId, // Dynamically retrieved ID
-                problemId: problemId,
-                language: language,
-                code: code
-            };
+                // If question has a language, use it, otherwise default to JavaScript
+                const language = currentQuestion.language || 'javascript';
+                languageSelector.value = language;
 
+                // Update editor language
+                monaco.editor.setModelLanguage(editor.getModel(), language);
 
-        // Send data to the backend using the POST method
-        fetch('/api/submissions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        })
-            .then(response => {
-                if (response.ok) {
-                    // alert("Code submitted successfully!");
-                    return response.json();
+                // If question has code, use it
+                if (currentQuestion.code) {
+                    editor.setValue(currentQuestion.code);
                 } else {
-                    throw new Error("Failed to submit code!");
+                    // If no code exists, apply boilerplate for the selected language
+                    const boilerplate = getBoilerplateCode(language);
+                    editor.setValue(boilerplate);
+                    currentQuestion.code = boilerplate;
+                    currentQuestion.language = language;
+                    localStorage.setItem('questions', JSON.stringify(questions));
                 }
-            })
-            .then(data => {
-                console.log("Response from backend:", data); // Debugging
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                alert("Error submitting code. Please try again!");
+            }
+
+            // Update navigation buttons
+            document.getElementById('prevButton').disabled = currentQuestionId === 1;
+            document.getElementById('nextButton').disabled = currentQuestionId === questions.length;
+
+            // Update questions list highlighting
+            const questionItems = document.querySelectorAll('#questionsList > div');
+            questionItems.forEach((item, index) => {
+                if (index + 1 === currentQuestionId) {
+                    item.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
+                } else {
+                    item.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-500');
+                }
             });
 
+            // Update localStorage
+            localStorage.setItem('currentQuestionId', currentQuestionId.toString());
+        }
 
-        // In a real application, you would send this data to your server
-        // For this example, we'll just simulate a submission
-        console.log('Submitting test answers:', answers);
+        // Save the current question's code
+        function saveCurrentQuestionCode() {
+            if (!editor) return;
 
-        // Mock API call
-        setTimeout(() => {
-            // Clear test data
-            localStorage.removeItem('testInProgress');  
-            localStorage.removeItem('startTime');
+            const currentQuestion = questions.find(q => q.id === currentQuestionId);
+            if (currentQuestion) {
+                currentQuestion.code = editor.getValue();
+                // Make sure language is saved
+                const languageSelector = document.getElementById('languageSelector');
+                currentQuestion.language = languageSelector.value;
+                localStorage.setItem('questions', JSON.stringify(questions));
+            }
+        }
 
-            // Show completion message
-            console.log('Your test has been submitted successfully!');
+        // Navigate to a specific question
+        function navigateToQuestion(questionId) {
+            saveCurrentQuestionCode();
+            currentQuestionId = questionId;
+            displayCurrentQuestion();
+        }
 
-            // Redirect to a thank you page (you would create this)
-            // For now, we'll just go back to the login
-            window.location.href = 'complete.html';
-        }, 1500);
-    }
-</script>
+        // Navigate to previous question
+        function navigateToPrevQuestion() {
+            if (currentQuestionId > 1) {
+                navigateToQuestion(currentQuestionId - 1);
+            }
+        }
+
+        // Navigate to next question
+        function navigateToNextQuestion() {
+            if (currentQuestionId < questions.length) {
+                navigateToQuestion(currentQuestionId + 1);
+            }
+        }
+
+        // Submit the test
+        function submitTest() {
+            // Save code and show loader
+            saveCurrentQuestionCode();
+
+            document.getElementById('submitModal').classList.add('hidden');
+            document.getElementById('loadingScreen').classList.remove('hidden');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const participantId = urlParams.get('participantId');
+
+            if (!participantId) {
+                alert("Participant ID is missing. Please try again.");
+                document.getElementById('loadingScreen').classList.add('hidden');
+                return;
+            }
+
+            const submissions = questions.map(q => ({
+                participantId: participantId,
+                problemId: q.id,
+                language: q.language || 'javascript', // Use the selected language
+                code: q.code || ''
+            })).filter(submission => submission.code !== '');
+
+            fetch('/api/submissions/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(submissions)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        return response.text().then(text => {
+                            throw new Error(`Failed to submit test: ${text}`);
+                        });
+                    }
+                })
+                .then(data => {
+                    console.log("All submissions saved:", data);
+                    localStorage.removeItem('testInProgress');
+                    localStorage.removeItem('startTime');
+                    window.location.href = 'complete.html';
+                })
+                .catch(error => {
+                    console.error("Submission error:", error);
+                    alert("Error submitting test. Please try again.");
+                    document.getElementById('loadingScreen').classList.add('hidden');
+                });
+        }
+
+        // Add this debug function to help troubleshoot
+        function debugLanguageChange() {
+            console.log('Language changed to:', document.getElementById('languageSelector').value);
+            console.log('Current question:', questions.find(q => q.id === currentQuestionId));
+        }
+    </script>
 </body>
 
 </html>

@@ -1,13 +1,14 @@
 package com.codeplateform.coding.controller;
 
 import com.codeplateform.coding.entity.Submission;
+import com.codeplateform.coding.payload.ApiResponse;
 import com.codeplateform.coding.service.SubmissionService;
-import com.codeplateform.coding.payload.ApiResponse; // Custom response class for better output
-import jakarta.validation.Valid; // For validation
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/submissions")
@@ -18,14 +19,21 @@ public class SubmissionController {
         this.submissionService = submissionService;
     }
 
-    // Endpoint to submit code
+    // 🔹 Single submission
     @PostMapping
     public ResponseEntity<ApiResponse> submitCode(@Valid @RequestBody Submission submission) {
         Submission savedSubmission = submissionService.saveSubmission(submission);
         return ResponseEntity.ok(new ApiResponse(true, "Submission saved successfully", savedSubmission));
     }
 
-    // Global exception handler for unexpected errors
+    // 🔸 Multiple submissions at once
+    @PostMapping("/bulk")
+    public ResponseEntity<ApiResponse> submitMultipleCodes(@Valid @RequestBody List<Submission> submissions) {
+        List<Submission> savedSubmissions = submissionService.saveAllSubmissions(submissions);
+        return ResponseEntity.ok(new ApiResponse(true, "All submissions saved successfully", savedSubmissions));
+    }
+
+    // 🌐 Global exception handler
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

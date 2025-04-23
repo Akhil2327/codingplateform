@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
+
 <div class="container mx-auto px-4 py-8 max-w-4xl">
     <header class="bg-white p-4 rounded-lg shadow-md mb-6 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-gray-800">Coding Competition</h1>
@@ -14,7 +15,6 @@
             Team ID: <span id="participantIdDisplay" class="font-medium"></span>
         </div>
     </header>
-
     <main class="bg-white p-6 rounded-lg shadow-md">
         <h2 class="text-xl font-semibold mb-4 text-gray-800">Instructions</h2>
 
@@ -22,7 +22,7 @@
             <p>Welcome to the coding competition! Please read the following instructions carefully:</p>
 
             <ol class="list-decimal pl-5 space-y-2">
-                <li>You will have <strong>30 minutes</strong> to complete the test once you click the Start button.</li>
+                <li>You will have <strong>60 minutes</strong> to complete the test once you click the Start button.</li>
                 <li>The test consists of multiple coding questions that you must solve.</li>
                 <li>You can navigate between questions using the navigation panel on the left.</li>
                 <li>Your code will be automatically saved when you switch between questions.</li>
@@ -43,24 +43,25 @@
                             Make sure you're ready before clicking the Start button. The timer will begin immediately.
                         </p>
                     </div>
+
                 </div>
             </div>
         </div>
 
-        <div class="mt-8 flex justify-center">
-            <button id="startButton" class="bg-green-600 text-white py-3 px-8 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors text-lg font-medium">
-                Start Test
-            </button>
-        </div>
-    </main>
+
+<div class="mt-8 flex justify-center">
+    <button id="startButton" class="bg-green-600 text-white py-3 px-8 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors text-lg font-medium">
+        Start Test
+    </button>
 </div>
+</main>
+</div>
+
 
 <script>
     // Check if user is logged in
     document.addEventListener('DOMContentLoaded', function() {
         const participantId = localStorage.getItem('participantId');
-
-        
 
         // Display team ID
         document.getElementById('participantIdDisplay').textContent = participantId;
@@ -69,11 +70,11 @@
         document.getElementById('startButton').addEventListener('click', function() {
             // Initialize test data in localStorage
             const questions = [
-                { id: 1, title: "Question 1", description: "Write a function that returns the sum of two numbers.", code: "function sum(a, b) {\n  // Your code here\n}" },
-                { id: 2, title: "Question 2", description: "Write a function that checks if a string is a palindrome.", code: "function isPalindrome(str) {\n  // Your code here\n}" },
-                { id: 3, title: "Question 3", description: "Write a function that finds the maximum value in an array.", code: "function findMax(arr) {\n  // Your code here\n}" },
-                { id: 4, title: "Question 4", description: "Write a function that counts the occurrence of each character in a string.", code: "function countChars(str) {\n  // Your code here\n}" },
-                { id: 5, title: "Question 5", description: "Write a function that reverses an array without using the built-in reverse method.", code: "function reverseArray(arr) {\n  // Your code here\n}" }
+                { id : 1, title: "Question 1", description: `A company has a server room with racks arranged in an M × N grid. Each rack can hold one cable box. A cable box connects to either one server (local) or two adjacent servers (if placed between them). You are to calculate the minimum number of cable boxes needed to connect all servers in the room if: Each server must be connected. Cable boxes can be shared between two adjacent servers only if they are in the same row. You must use the least number of cable boxes. Input: An integer M (number of rows) An integer N (number of columns). Output: Minimum number of cable boxes needed. ` },
+
+                { id: 2, title: "Question 2", description: `Theatre Square in the capital city is a rectangular square with the size n × m meters. You need to cover the entire square with square flagstones of size a × a meters. Flagstones cannot be broken or cut, and you can’t leave any part of the square uncovered. Determine the minimum number of flagstones needed. --- Input Format: A single line with three positive integers: n, m, and a (1 ≤ n, m, a ≤ 10^9). Output Format: Print the minimum number of flagstones needed to cover the n × m area. --- Sample Input: 6 6 4 Sample Output: 4. Example: If M = 2, N = 3 (2 rows, 3 columns of servers): We can connect each row like this: Row 1: [S]—[S]—[S] → use 2 cable boxes (between each pair) Row 2: [S]—[S]—[S] → use 2 cable boxes Total: 4 cable boxes` },
+
+                { id: 3, title: "Question 3", description: `You are given an array of 3 positive integers: a, b, and c. You need to check if it is possible to multiply exactly one element of the array by a positive integer (≥ 1), such that the resulting array becomes an Arithmetic Progression (AP). An array [x1, x2, x3] is considered an Arithmetic Progression (AP) if the difference between consecutive elements is the same, i.e., x2 - x1 = x3 - x2. Return "YES" if it is possible to modify exactly one element of the array to form an AP, and "NO" otherwise. Input: An integer n (1 ≤ n ≤ 100) representing the number of test cases. Followed by n test cases, each containing an array of integers arr = [a, b, c] where: a, b, and c are positive integers, i.e., 1 ≤ a, b, c ≤ 10^4. Output: For each test case, return a tuple with: "YES" if it is possible to form an AP by modifying exactly one element of the array. "NO" if it is not possible. If the answer is "YES", return the modified array as the second element of the tuple. Example: Input: n = 3 arr1 = [5, 10, 15] arr2 = [3, 6, 8] arr3 = [3, 8, 10] Output: ("YES", [5, 10, 15]) ("NO", []) ("YES", [6, 8, 10]) Explanation: Test Case 1: The array [5, 10, 15] is already an arithmetic progression with a common difference of 5. Test Case 2: There is no way to modify any one element of the array to make it an AP. Test Case 3: 3*2=6 The modify one element of the array is 3 and it become AP [6,8,10]. Constraints: 1 ≤ n ≤ 100 (Number of test cases) The array will always contain exactly 3 positive integers. Each integer a, b, and c satisfies 1 ≤ a, b, c ≤ 10^4.`}
             ];
 
             localStorage.setItem('questions', JSON.stringify(questions));
@@ -84,6 +85,7 @@
             // Redirect to test page
             window.location.href = `problem-statement.html?participantId=${participantId}`;
         });
+
     });
 </script>
 </body>
